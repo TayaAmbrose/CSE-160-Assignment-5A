@@ -1,0 +1,517 @@
+<!-- Taya Ambrose -->
+<!-- CSE 160 -->
+<!-- April 21, 2024 -->
+
+<!-- SOURCES FOR STARTING THIS CODE, AND FOR LEARNING DIFFERENT TECHNIQUES -->
+    <!-- Tutorials: steps 1-6 in the assignment, also this for stars and dimensional space: https://medium.com/nerd-for-tech/adding-a-custom-star-field-background-with-three-js-79a1d18fd35d-->
+
+<!-- Note: I looked at the code that was provided in the tutorials to start my scene -->
+<!-- I followed many of the tutorials, and they should seem similar to my code. -->
+<!-- Scene: Handball court -->
+
+<!-- Lighting used: Directional light, Hemisphere light, and Spotlight light -->
+<!-- I also added a slider and color selector for users to mess with the appearance. -->
+<!-- I learned about the color selector and light intensity slider here: https://threejs.org/manual/#en/lights -->
+
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=yes"
+    />
+    <title>Three.js - Lights - Hemisphere</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      #c {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://threejs.org/build/three.module.js",
+          "three/addons/": "https://threejs.org/examples/jsm/"
+        }
+      }
+    </script>
+  </body>
+
+  <script type="module">
+    // Three.js - Lights - Hemisphere
+    // from https://threejs.org/manual/examples/lights-hemisphere.html
+
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+    import { GUI } from "three/addons/libs/lil-gui.module.min.js";
+    import { SpotLight } from "three"; // third kind of light
+
+    function main() {
+      const canvas = document.querySelector("#c");
+      const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
+
+      const fov = 45;
+      const aspect = 2; // the canvas default
+      const near = 0.1;
+      const far = 100;
+      const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+      camera.position.set(0, 10, 20);
+
+      const controls = new OrbitControls(camera, canvas);
+      controls.target.set(0, 5, 0);
+      controls.update();
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color("blue");
+      //background: url(underwater.jpg) no-repeat center center ;
+
+        const spotlightColor = 0xffffff; // White color
+        const spotlightIntensity = 2;
+        const spotlightDistance = 50;
+        const spotlightAngle = Math.PI / 6; // 30-degree angle
+        const spotlightPenumbra = 0.2; // Softens the edge of the spotlight
+
+        const spotlight = new SpotLight(spotlightColor, spotlightIntensity, spotlightDistance, spotlightAngle, spotlightPenumbra);
+        spotlight.position.set(0, 10, 0); // Set the position of the spotlight
+        spotlight.target.position.set(0, 0, 0); // Set the target for the spotlight
+        scene.add(spotlight);
+        scene.add(spotlight.target); // Add the spotlight's target to the scene
+
+
+      {
+        const planeSize = 400;
+
+        const loader = new THREE.TextureLoader();
+        const texture = loader.load(
+          "https://threejs.org/manual/examples/resources/images/checker.png"
+        );
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.magFilter = THREE.NearestFilter;
+        texture.colorSpace = THREE.SRGBColorSpace;
+        const repeats = planeSize / 2;
+        texture.repeat.set(repeats, repeats);
+
+        const planeGeo = new THREE.PlaneGeometry(planeSize, planeSize);
+        const planeMat = new THREE.MeshPhongMaterial({
+          map: texture,
+          side: THREE.DoubleSide,
+        });
+        const mesh = new THREE.Mesh(planeGeo, planeMat);
+        mesh.rotation.x = Math.PI * -0.5;
+        scene.add(mesh);
+      }
+
+      {
+
+        const loader = new THREE.TextureLoader();
+        const texture = loader.load(
+            'https://threejs.org/manual/examples/resources/images/equirectangularmaps/tears_of_steel_bridge_2k.jpg',
+            () => {
+
+                texture.mapping = THREE.EquirectangularReflectionMapping;
+                texture.colorSpace = THREE.SRGBColorSpace;
+                scene.background = texture;
+
+            } );
+
+      }
+
+      {
+        // const cubeSize = 4;
+        // const cubeGeo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+        // const cubeMat = new THREE.MeshPhongMaterial({ color: "#8AC" });
+        // const mesh = new THREE.Mesh(cubeGeo, cubeMat);
+        // mesh.position.set(cubeSize + 1, cubeSize / 2, 0);
+        // scene.add(mesh);
+        const wallWidth = 2; // Width of the rectangular prism
+        const wallHeight = 15; // Height of the rectangular prism
+        const wallDepth = 45; // Depth of the rectangular prism
+        const wallGeo = new THREE.BoxGeometry(wallWidth, wallHeight, wallDepth);
+
+        // Load the texture image
+        const textureLoader = new THREE.TextureLoader();
+        const texture = textureLoader.load('https://threejs.org/manual/examples/resources/images/wall.jpg');
+
+        // Create a material with the texture
+        const wallMat = new THREE.MeshPhongMaterial({ map: texture });
+
+        // Create a mesh using the wall geometry and material
+        const wallMesh = new THREE.Mesh(wallGeo, wallMat);
+        wallMesh.position.set(wallWidth / 2 + 10, wallHeight / 2, 0); // Adjust position accordingly
+
+        // Add the wall mesh to the scene
+        scene.add(wallMesh);
+
+      }
+
+      {
+        const curbWidth = 40; // Width of the rectangular prism
+        const curbHeight = 2; // Height of the rectangular prism
+        const curbDepth = 3; // Depth of the rectangular prism
+        const curbGeo = new THREE.BoxGeometry(curbWidth, curbHeight, curbDepth);
+        const curbMat = new THREE.MeshPhongMaterial({ color: "#8AC" });
+        const mesh = new THREE.Mesh(curbGeo, curbMat);
+        mesh.position.set(curbWidth / 2 - 30, curbHeight / 2, 20); // Adjust position accordingly
+        scene.add(mesh);
+      }
+
+      {
+        const curbLeftWidth = 40; // Width of the rectangular prism
+        const curbLeftHeight = 2; // Height of the rectangular prism
+        const curbLeftDepth = 3; // Depth of the rectangular prism
+        const curbLeftGeo = new THREE.BoxGeometry(
+          curbLeftWidth,
+          curbLeftHeight,
+          curbLeftDepth
+        );
+        const curbLeftMat = new THREE.MeshPhongMaterial({ color: "#8AC" });
+        const mesh = new THREE.Mesh(curbLeftGeo, curbLeftMat);
+        mesh.position.set(curbLeftWidth / 2 - 30, curbLeftHeight / 2, -20); // Adjust position accordingly
+        scene.add(mesh);
+      }
+
+
+      // bleachers right
+      {
+        const bleachersWidth = 40; // Width of the rectangular prism
+        const bleachersHeight = 3; // Height of the rectangular prism
+        const bleachersDepth = 5; // Depth of the rectangular prism
+        const bleachersGeo = new THREE.BoxGeometry(bleachersWidth, bleachersHeight, bleachersDepth);
+        const bleachersMat = new THREE.MeshPhongMaterial({ color: "#8AC" });
+        const mesh = new THREE.Mesh(bleachersGeo, bleachersMat);
+        mesh.position.set(bleachersWidth / 2 - 30, bleachersHeight / 2, 30); // Adjust position accordingly
+        scene.add(mesh);
+
+        const bleachers2Width = 40; // Width of the rectangular prism
+        const bleachers2Height = 6; // Height of the rectangular prism
+        const bleachers2Depth = 5; // Depth of the rectangular prism
+        const bleachers2Geo = new THREE.BoxGeometry(bleachers2Width, bleachers2Height, bleachers2Depth);
+        const bleachers2Mat = new THREE.MeshPhongMaterial({ color: "#8AC" });
+        const mesh2 = new THREE.Mesh(bleachers2Geo, bleachers2Mat);
+        mesh2.position.set(bleachers2Width / 2 - 30, bleachers2Height / 2, 35); // Adjust position accordingly
+        scene.add(mesh2);
+
+        const bleachers3Width = 40; // Width of the rectangular prism
+        const bleachers3Height = 9; // Height of the rectangular prism
+        const bleachers3Depth = 5; // Depth of the rectangular prism
+        const bleachers3Geo = new THREE.BoxGeometry(bleachers3Width, bleachers3Height, bleachers3Depth);
+        const bleachers3Mat = new THREE.MeshPhongMaterial({ color: "#8AC" });
+        const mesh3 = new THREE.Mesh(bleachers3Geo, bleachers3Mat);
+        mesh3.position.set(bleachers3Width / 2 - 30, bleachers3Height / 2, 40); // Adjust position accordingly
+        scene.add(mesh3);
+      }
+
+      // bleachers left
+      {
+        const bleachersWidthLeft = 40; // Width of the rectangular prism
+        const bleachersHeightLeft = 3; // Height of the rectangular prism
+        const bleachersDepthLeft = 5; // Depth of the rectangular prism
+        const bleachersGeoLeft = new THREE.BoxGeometry(bleachersWidthLeft, bleachersHeightLeft, bleachersDepthLeft);
+        const bleachersMatLeft = new THREE.MeshPhongMaterial({ color: "#8AC" });
+        const meshLeft = new THREE.Mesh(bleachersGeoLeft, bleachersMatLeft); // Fixed variable name
+        meshLeft.position.set(bleachersWidthLeft / 2 - 30, bleachersHeightLeft / 2, -30); // Adjust position accordingly
+        scene.add(meshLeft);
+
+        const bleachers2WidthLeft = 40; // Width of the rectangular prism
+        const bleachers2HeightLeft = 6; // Height of the rectangular prism
+        const bleachers2DepthLeft = 5; // Depth of the rectangular prism
+        const bleachers2GeoLeft = new THREE.BoxGeometry(bleachers2WidthLeft, bleachers2HeightLeft, bleachers2DepthLeft);
+        const bleachers2MatLeft = new THREE.MeshPhongMaterial({ color: "#8AC" });
+        const mesh2Left = new THREE.Mesh(bleachers2GeoLeft, bleachers2MatLeft); // Fixed variable name
+        mesh2Left.position.set(bleachers2WidthLeft / 2 - 30, bleachers2HeightLeft / 2, -35); // Adjust position accordingly
+        scene.add(mesh2Left);
+
+        const bleachers3WidthLeft = 40; // Width of the rectangular prism
+        const bleachers3HeightLeft = 9; // Height of the rectangular prism
+        const bleachers3DepthLeft = 5; // Depth of the rectangular prism
+        const bleachers3GeoLeft = new THREE.BoxGeometry(bleachers3WidthLeft, bleachers3HeightLeft, bleachers3DepthLeft);
+        const bleachers3MatLeft = new THREE.MeshPhongMaterial({ color: "#8AC" });
+        const mesh3Left = new THREE.Mesh(bleachers3GeoLeft, bleachers3MatLeft); // Fixed variable name
+        mesh3Left.position.set(bleachers3WidthLeft / 2 - 30, bleachers3HeightLeft / 2, -40); // Adjust position accordingly
+        scene.add(mesh3Left);
+      }
+
+
+      {
+        const sphereRadius = 2;
+        const sphereWidthDivisions = 32;
+        const sphereHeightDivisions = 16;
+        const sphereGeo = new THREE.SphereGeometry(
+          sphereRadius,
+          sphereWidthDivisions,
+          sphereHeightDivisions
+        );
+        const sphereMat = new THREE.MeshPhongMaterial({ color: "#CA8" });
+        const mesh = new THREE.Mesh(sphereGeo, sphereMat);
+        mesh.position.set(-sphereRadius - 10, sphereRadius + 14, 5);
+        scene.add(mesh);
+      }
+
+      {
+
+        const color = 0xFFFFFF;
+        const intensity = 3;
+        const light = new THREE.DirectionalLight( color, intensity );
+        light.position.set( - 1, 2, 4 );
+        scene.add( light );
+
+      }
+
+        // end pieces
+        const prismRadius = 3; // Radius of the triangular prism base
+        const prismHeight = 6; // Height of the triangular prism
+        const prismSegments = 9; // Number of triangular segments (3 for a triangular prism)
+        const prismGeometry = new THREE.CylinderGeometry(0, prismRadius, prismHeight, prismSegments);
+        const prismMaterial = new THREE.MeshBasicMaterial({ color: 0x0000aa }); 
+        const prismMesh = new THREE.Mesh(prismGeometry, prismMaterial);
+        prismMesh.position.set(-30, prismHeight / 2, -20); // Adjust position accordingly
+        scene.add(prismMesh);
+
+        const prismRadiusLeft = 3; // Radius of the triangular prism base
+        const prismHeightLeft = 6; // Height of the triangular prism
+        const prismSegmentsLeft = 9; // Number of triangular segments (3 for a triangular prism)
+        const prismGeometryLeft = new THREE.CylinderGeometry(0, prismRadius, prismHeight, prismSegments);
+        const prismMaterialLeft = new THREE.MeshBasicMaterial({ color: 0x0000aa }); 
+        const prismMeshLeft = new THREE.Mesh(prismGeometryLeft, prismMaterialLeft);
+        prismMeshLeft.position.set(-30, prismHeightLeft / 2, 20); // Adjust position accordingly
+        scene.add(prismMeshLeft);
+
+      //////////////////////////////////////////////////////////////////////
+      // boxes right
+      //////////////////////////////////////////////////////////////////////
+      const boxWidth = 1;
+	  const boxHeight = 1;
+	  const boxDepth = 1;
+	  const geometry = new THREE.BoxGeometry( boxWidth, boxHeight, boxDepth );
+
+	  const material = new THREE.MeshBasicMaterial( { color: 0x44aa88 } ); // greenish blue
+
+	  const cube = new THREE.Mesh( geometry, material );
+      cube.position.set(5, 5, 20); // Set the cube higher
+	  scene.add( cube );
+
+      const box2Width = 1;
+	  const box2Height = 1;
+	  const box2Depth = 1;
+	  const geometry2 = new THREE.BoxGeometry( box2Width, box2Height, box2Depth );
+
+	  const material2 = new THREE.MeshBasicMaterial( { color: 0x0000aa } ); // deep blue
+
+	  const cube2 = new THREE.Mesh( geometry2, material2 );
+      cube2.position.set(-3, 5, 20); // Set the cube higher
+	  scene.add( cube2 );
+
+      const box3Width = 1;
+	  const box3Height = 1;
+	  const box3Depth = 1;
+	  const geometry3 = new THREE.BoxGeometry( box3Width, box3Height, box3Depth );
+
+	  const material3 = new THREE.MeshBasicMaterial( { color: 0x44aa88 } ); // green blue
+
+	  const cube3 = new THREE.Mesh( geometry3, material3 );
+      cube3.position.set(-11, 5, 20); // Set the cube higher
+	  scene.add( cube3 );
+
+      const box4Width = 1;
+	  const box4Height = 1;
+	  const box4Depth = 1;
+	  const geometry4 = new THREE.BoxGeometry( box4Width, box4Height, box4Depth );
+
+	  const material4 = new THREE.MeshBasicMaterial( { color: 0x0000aa } ); // deep blue
+
+	  const cube4 = new THREE.Mesh( geometry4, material4 );
+      cube4.position.set(-19, 5, 20); // Set the cube higher
+	  scene.add( cube4 );
+
+      const box5Width = 1;
+	  const box5Height = 1;
+	  const box5Depth = 1;
+	  const geometry5 = new THREE.BoxGeometry( box5Width, box5Height, box5Depth );
+
+	  const material5 = new THREE.MeshBasicMaterial( { color: 0x44aa88 } ); // green blue
+
+	  const cube5 = new THREE.Mesh( geometry5, material5 );
+      cube5.position.set(-27, 5, 20); // Set the cube higher
+	  scene.add( cube5 );
+
+      //////////////////////////////////////////////////////////////////////
+      // end boxes right
+      //////////////////////////////////////////////////////////////////////
+
+      //////////////////////////////////////////////////////////////////////
+      // boxes left
+      //////////////////////////////////////////////////////////////////////
+      const boxWidthLeft = 1;
+	  const boxHeightLeft = 1;
+	  const boxDepthLeft = 1;
+	  const geometryLeft = new THREE.BoxGeometry( boxWidthLeft, boxHeightLeft, boxDepthLeft );
+
+	  const materialLeft = new THREE.MeshBasicMaterial( { color: 0x44aa88 } ); // greenish blue
+
+	  const cubeLeft = new THREE.Mesh( geometryLeft, materialLeft );
+      cubeLeft.position.set(5, 5, -20); // Set the cube higher
+	  scene.add( cubeLeft );
+
+      const box2WidthLeft = 1;
+	  const box2HeightLeft = 1;
+	  const box2DepthLeft = 1;
+	  const geometry2Left = new THREE.BoxGeometry( box2WidthLeft, box2HeightLeft, box2DepthLeft );
+
+	  const material2Left = new THREE.MeshBasicMaterial( { color: 0x0000aa } ); // deep blue
+
+	  const cube2Left = new THREE.Mesh( geometry2Left, material2Left );
+      cube2Left.position.set(-3, 5, -20); // Set the cube higher
+	  scene.add( cube2Left );
+
+      const box3WidthLeft = 1;
+	  const box3HeightLeft = 1;
+	  const box3DepthLeft = 1;
+	  const geometry3Left = new THREE.BoxGeometry( box3WidthLeft, box3HeightLeft, box3DepthLeft );
+
+	  const material3Left = new THREE.MeshBasicMaterial( { color: 0x44aa88 } ); // green blue
+
+	  const cube3Left = new THREE.Mesh( geometry3Left, material3Left );
+      cube3Left.position.set(-11, 5, -20); // Set the cube higher
+	  scene.add( cube3Left );
+
+      const box4WidthLeft = 1;
+	  const box4HeightLeft = 1;
+	  const box4DepthLeft = 1;
+	  const geometry4Left = new THREE.BoxGeometry( box4WidthLeft, box4HeightLeft, box4DepthLeft );
+
+	  const material4Left = new THREE.MeshBasicMaterial( { color: 0x0000aa } ); // deep blue
+
+	  const cube4Left = new THREE.Mesh( geometry4Left, material4Left );
+      cube4Left.position.set(-19, 5, -20); // Set the cube higher
+	  scene.add( cube4Left );
+
+      const box5WidthLeft = 1;
+	  const box5HeightLeft = 1;
+	  const box5DepthLeft = 1;
+	  const geometry5Left = new THREE.BoxGeometry( box5WidthLeft, box5HeightLeft, box5DepthLeft );
+
+	  const material5Left = new THREE.MeshBasicMaterial( { color: 0x44aa88 } ); // green blue
+
+	  const cube5Left = new THREE.Mesh( geometry5Left, material5Left );
+      cube5Left.position.set(-27, 5, -20); // Set the cube higher
+	  scene.add( cube5Left );
+
+      //////////////////////////////////////////////////////////////////////
+      // end boxes left
+      //////////////////////////////////////////////////////////////////////
+
+      // Animation parameters flag
+      const bounceHeight = 5;
+      const bounceSpeed = 0.05;
+      let bouncePhase = 0;
+
+      class ColorGUIHelper {
+        constructor(object, prop) {
+          this.object = object;
+          this.prop = prop;
+        }
+        get value() {
+          return `#${this.object[this.prop].getHexString()}`;
+        }
+        set value(hexString) {
+          this.object[this.prop].set(hexString);
+        }
+      }
+
+      {
+        const skyColor = 0xb1e1ff; // light blue
+        const groundColor = 0xb97a20; // brownish orange
+        const intensity = 3;
+        const light = new THREE.HemisphereLight(
+          skyColor,
+          groundColor,
+          intensity
+        );
+        scene.add(light);
+
+        const gui = new GUI();
+        gui
+          .addColor(new ColorGUIHelper(light, "color"), "value")
+          .name("skyColor");
+        gui
+          .addColor(new ColorGUIHelper(light, "groundColor"), "value")
+          .name("groundColor");
+        gui.add(light, "intensity", 0, 5, 0.01);
+      }
+
+      function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement;
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        const needResize = canvas.width !== width || canvas.height !== height;
+        if (needResize) {
+          renderer.setSize(width, height, false);
+        }
+
+        return needResize;
+      }
+
+      function render(time) {
+        time *= 0.001; // convert time to seconds
+        if (resizeRendererToDisplaySize(renderer)) {
+          const canvas = renderer.domElement;
+          camera.aspect = canvas.clientWidth / canvas.clientHeight;
+          camera.updateProjectionMatrix();
+        }
+
+        // right
+		cube.rotation.x = time;
+		cube.rotation.y = time;
+
+        cube2.rotation.x = time;
+		cube2.rotation.y = time;
+
+        cube3.rotation.x = time;
+		cube3.rotation.y = time;
+
+        cube4.rotation.x = time;
+		cube4.rotation.y = time;
+
+        cube5.rotation.x = time;
+		cube5.rotation.y = time;
+
+        // left
+        cubeLeft.rotation.x = time;
+		cubeLeft.rotation.y = time;
+
+        cube2Left.rotation.x = time;
+		cube2Left.rotation.y = time;
+
+        cube3Left.rotation.x = time;
+		cube3Left.rotation.y = time;
+
+        cube4Left.rotation.x = time;
+		cube4Left.rotation.y = time;
+
+        cube5Left.rotation.x = time;
+		cube5Left.rotation.y = time;
+
+        renderer.render(scene, camera);
+
+        requestAnimationFrame(render);
+      }
+
+      requestAnimationFrame(render);
+    }
+
+    main();
+  </script>
+</html>
